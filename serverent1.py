@@ -1,20 +1,27 @@
 import os
 import socket
 
-client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(('localhost', 9999))
+def send(addr:str, port:int, fileName:str):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((addr, port))
 
-file_name = 'image.jpg'
-file_size = os.path.getsize(file_name)
+    file_name = fileName
+    file_size = os.path.getsize(file_name)
 
-client.send(f"{file_name}_sent.jpg<NAME_END>".encode())
-client.send(f"{file_size}<SIZE_END>".encode())
+    name_to_send = file_name.split('.')[0]
 
-with open(file_name, "rb") as f:
-    while (chunk := f.read(1024)):
-        client.send(chunk)
-    client.send("<FILE_END>".encode())
+    client.send(f"{name_to_send}<NAME_END>".encode())
+    client.send(f"{file_size}<SIZE_END>".encode())
+
+    with open(file_name, "rb") as f:
+        while (chunk := f.read(1024)):
+            client.send(chunk)
+        client.send("<FILE_END>".encode())
+    
+    client.close()
 
 
-
-client.close()
+if __name__=="__main__":
+    print("Sending...")
+    send('localhost', 9999, 'image.jpg')
+    print("Done.")
